@@ -590,7 +590,7 @@ export function ContractForm({ meta }: Props) {
                 <Label>引渡方法</Label>
                 <Select
                   value={baibai.deliveryMethod}
-                  onValueChange={(v) => setBaibai({ ...baibai, deliveryMethod: v })}
+                  onValueChange={(v) => setBaibai({ ...baibai, deliveryMethod: v ?? baibai.deliveryMethod })}
                 >
                   <SelectTrigger>
                     <SelectValue />
