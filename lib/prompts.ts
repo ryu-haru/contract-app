@@ -1,6 +1,5 @@
 import type { ContractFormData } from '@/types/contract'
 
-
 export const SYSTEM_PROMPT = `あなたは日本の法律に精通した契約書作成の専門家です。
 入力された条件をもとに、実用的で明確な日本語の契約書を作成してください。
 
