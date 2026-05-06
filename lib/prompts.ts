@@ -1,5 +1,6 @@
 import type { ContractFormData } from '@/types/contract'
 
+
 export const SYSTEM_PROMPT = `あなたは日本の法律に精通した契約書作成の専門家です。
 入力された条件をもとに、実用的で明確な日本語の契約書を作成してください。
 
@@ -74,6 +75,37 @@ ${commonInfo}
 - 支払い条件: ${t.paymentTerms}
 
 第1条（目的）、第2条（個別契約）、第3条（発注・受注）、第4条（納入・検収）、第5条（代金・支払い）、第6条（所有権・危険負担）、第7条（知的財産権）、第8条（秘密保持）、第9条（反社会的勢力の排除）、第10条（契約解除）、第11条（損害賠償）、第12条（有効期間）、管轄裁判所条項を含めてください。`
+  }
+
+  if (type === 'gyomu-teikei' && data.gyomuTeikei) {
+    const g = data.gyomuTeikei
+    return `以下の条件で業務提携契約書を作成してください。
+
+${commonInfo}
+
+## 提携の詳細
+- 提携の目的: ${g.partnershipPurpose}
+- 協業内容・範囲: ${g.cooperationScope}
+- 独占的提携: ${g.exclusivity ? 'あり（競合他社との類似提携を制限）' : 'なし（非独占的提携）'}
+${g.revenueShare ? `- 収益配分: ${g.revenueShare}` : ''}
+
+第1条（目的）、第2条（協業内容）、第3条（役割分担）、第4条（費用負担）${g.revenueShare ? '、第5条（収益配分）' : ''}、知的財産権条項、秘密保持条項${g.exclusivity ? '、独占的提携条項' : ''}、契約解除条項、損害賠償条項、反社会的勢力排除条項、管轄裁判所条項を含めてください。`
+  }
+
+  if (type === 'baibai' && data.baibai) {
+    const b = data.baibai
+    return `以下の条件で売買契約書を作成してください。
+
+${commonInfo}
+
+## 売買の詳細
+- 売買対象の商品・サービス: ${b.productDescription}
+- 売買代金: ${b.price}円（税別）
+- 引渡日: ${b.deliveryDate}
+- 引渡方法: ${b.deliveryMethod}
+${b.warrantyPeriod ? `- 品質保証期間: 引渡後${b.warrantyPeriod}` : ''}
+
+第1条（売買の目的物）、第2条（代金・支払い）、第3条（引渡）、第4条（所有権移転）、第5条（危険負担）${b.warrantyPeriod ? '、第6条（品質保証）' : ''}、第7条（契約不適合責任）、第8条（解除）、第9条（損害賠償）、反社会的勢力排除条項、管轄裁判所条項を含めてください。`
   }
 
   return '契約書を作成してください。'

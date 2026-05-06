@@ -1,4 +1,4 @@
-export type ContractType = 'gyomu-itaku' | 'nda' | 'torihiki-kihon'
+export type ContractType = 'gyomu-itaku' | 'nda' | 'torihiki-kihon' | 'gyomu-teikei' | 'baibai'
 
 export interface ContractTypeMeta {
   id: ContractType
@@ -52,10 +52,27 @@ export interface TorihikiKihonFields {
   paymentTerms: string
 }
 
+export interface GyomuTeikeiFields {
+  partnershipPurpose: string
+  cooperationScope: string
+  exclusivity: boolean
+  revenueShare: string
+}
+
+export interface BaibaiFields {
+  productDescription: string
+  price: string
+  deliveryDate: string
+  deliveryMethod: string
+  warrantyPeriod: string
+}
+
 export interface ContractFormData {
   type: ContractType
   common: CommonFields
   gyomuItaku?: GyomuItakuFields
   nda?: NdaFields
   torihikiKihon?: TorihikiKihonFields
+  gyomuTeikei?: GyomuTeikeiFields
+  baibai?: BaibaiFields
 }

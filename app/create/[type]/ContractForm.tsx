@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import type { ContractTypeMeta } from '@/types/contract'
-import type { CommonFields, GyomuItakuFields, NdaFields, TorihikiKihonFields } from '@/types/contract'
+import type { CommonFields, GyomuItakuFields, NdaFields, TorihikiKihonFields, GyomuTeikeiFields, BaibaiFields } from '@/types/contract'
 
 interface Props {
   meta: ContractTypeMeta
@@ -60,6 +60,21 @@ export function ContractForm({ meta }: Props) {
     paymentTerms: '月末締め翌月末払い',
   })
 
+  const [gyomuTeikei, setGyomuTeikei] = useState<GyomuTeikeiFields>({
+    partnershipPurpose: '',
+    cooperationScope: '',
+    exclusivity: false,
+    revenueShare: '',
+  })
+
+  const [baibai, setBaibai] = useState<BaibaiFields>({
+    productDescription: '',
+    price: '',
+    deliveryDate: '',
+    deliveryMethod: '現物引渡',
+    warrantyPeriod: '',
+  })
+
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     const formData = {
@@ -68,6 +83,8 @@ export function ContractForm({ meta }: Props) {
       ...(meta.id === 'gyomu-itaku' && { gyomuItaku }),
       ...(meta.id === 'nda' && { nda }),
       ...(meta.id === 'torihiki-kihon' && { torihikiKihon }),
+      ...(meta.id === 'gyomu-teikei' && { gyomuTeikei }),
+      ...(meta.id === 'baibai' && { baibai }),
     }
     localStorage.setItem('contractFormData', JSON.stringify(formData))
     router.push('/preview')
@@ -474,6 +491,125 @@ export function ContractForm({ meta }: Props) {
                     <SelectItem value="20日締め翌月末払い">20日締め翌月末払い</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* 業務提携固有 */}
+      {meta.id === 'gyomu-teikei' && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">提携の詳細</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label>提携の目的</Label>
+              <Input
+                required
+                value={gyomuTeikei.partnershipPurpose}
+                onChange={(e) => setGyomuTeikei({ ...gyomuTeikei, partnershipPurpose: e.target.value })}
+                placeholder="例: 共同マーケティングによる顧客獲得の拡大"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>協業内容・範囲</Label>
+              <Textarea
+                required
+                rows={3}
+                value={gyomuTeikei.cooperationScope}
+                onChange={(e) => setGyomuTeikei({ ...gyomuTeikei, cooperationScope: e.target.value })}
+                placeholder="例: 共同セミナーの開催、見込み顧客の相互紹介、共同プロモーション活動"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>収益配分（任意）</Label>
+              <Input
+                value={gyomuTeikei.revenueShare}
+                onChange={(e) => setGyomuTeikei({ ...gyomuTeikei, revenueShare: e.target.value })}
+                placeholder="例: 紹介成約時に紹介元へ成約金額の10%を支払う"
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="exclusivity"
+                checked={gyomuTeikei.exclusivity}
+                onChange={(e) => setGyomuTeikei({ ...gyomuTeikei, exclusivity: e.target.checked })}
+                className="h-4 w-4"
+              />
+              <Label htmlFor="exclusivity">独占的提携（競合他社との類似提携を制限）</Label>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* 売買契約固有 */}
+      {meta.id === 'baibai' && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">売買の詳細</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label>売買対象の商品・サービス</Label>
+              <Textarea
+                required
+                rows={2}
+                value={baibai.productDescription}
+                onChange={(e) => setBaibai({ ...baibai, productDescription: e.target.value })}
+                placeholder="例: 社内業務管理システム（ソフトウェア一式）"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>売買代金（税別）</Label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    required
+                    value={baibai.price}
+                    onChange={(e) => setBaibai({ ...baibai, price: e.target.value })}
+                    placeholder="1,000,000"
+                  />
+                  <span className="text-sm text-muted-foreground">円</span>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label>引渡日</Label>
+                <Input
+                  type="date"
+                  required
+                  value={baibai.deliveryDate}
+                  onChange={(e) => setBaibai({ ...baibai, deliveryDate: e.target.value })}
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>引渡方法</Label>
+                <Select
+                  value={baibai.deliveryMethod}
+                  onValueChange={(v) => setBaibai({ ...baibai, deliveryMethod: v })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="現物引渡">現物引渡</SelectItem>
+                    <SelectItem value="電磁的方法（データ納品）">電磁的方法（データ納品）</SelectItem>
+                    <SelectItem value="持込引渡">持込引渡</SelectItem>
+                    <SelectItem value="宅配便による発送">宅配便による発送</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>品質保証期間（任意）</Label>
+                <Input
+                  value={baibai.warrantyPeriod}
+                  onChange={(e) => setBaibai({ ...baibai, warrantyPeriod: e.target.value })}
+                  placeholder="例: 12ヶ月"
+                />
               </div>
             </div>
           </CardContent>
