@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
@@ -14,6 +14,21 @@ type State =
   | { status: 'streaming' }
   | { status: 'error'; message: string }
   | { status: 'done'; text: string }
+
+function renderInline(text: string): React.ReactNode {
+  const parts: React.ReactNode[] = []
+  const re = /(\*\*(.+?)\*\*|\*(.+?)\*)/g
+  let last = 0
+  let m: RegExpExecArray | null
+  while ((m = re.exec(text)) !== null) {
+    if (m.index > last) parts.push(text.slice(last, m.index))
+    if (m[2]) parts.push(<strong key={m.index}>{m[2]}</strong>)
+    else if (m[3]) parts.push(<em key={m.index}>{m[3]}</em>)
+    last = m.index + m[0].length
+  }
+  if (last < text.length) parts.push(text.slice(last))
+  return parts.length === 1 && typeof parts[0] === 'string' ? parts[0] : parts
+}
 
 export function PreviewContent() {
   const router = useRouter()
@@ -149,21 +164,24 @@ export function PreviewContent() {
             <div className="contract-body prose prose-sm dark:prose-invert max-w-none">
               {editedText.split('\n').map((line, i) => {
                 if (line.startsWith('# ')) {
-                  return <h1 key={i} className="text-xl font-bold mt-6 mb-4">{line.slice(2)}</h1>
+                  return <h1 key={i} className="text-xl font-bold mt-6 mb-4">{renderInline(line.slice(2))}</h1>
                 }
                 if (line.startsWith('## ')) {
-                  return <h2 key={i} className="text-lg font-semibold mt-5 mb-3">{line.slice(3)}</h2>
+                  return <h2 key={i} className="text-lg font-semibold mt-5 mb-3">{renderInline(line.slice(3))}</h2>
                 }
                 if (line.startsWith('### ')) {
-                  return <h3 key={i} className="text-base font-semibold mt-4 mb-2">{line.slice(4)}</h3>
+                  return <h3 key={i} className="text-base font-semibold mt-4 mb-2">{renderInline(line.slice(4))}</h3>
                 }
                 if (line.startsWith('- ') || line.startsWith('* ')) {
-                  return <li key={i} className="ml-4 list-disc">{line.slice(2)}</li>
+                  return <li key={i} className="ml-4 list-disc">{renderInline(line.slice(2))}</li>
+                }
+                if (/^\d+\.\s/.test(line)) {
+                  return <li key={i} className="ml-4 list-decimal">{renderInline(line.replace(/^\d+\.\s/, ''))}</li>
                 }
                 if (line.trim() === '') {
                   return <br key={i} />
                 }
-                return <p key={i} className="mb-1 leading-relaxed">{line}</p>
+                return <p key={i} className="mb-1 leading-relaxed">{renderInline(line)}</p>
               })}
             </div>
           )}
