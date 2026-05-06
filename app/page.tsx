@@ -13,7 +13,7 @@ export default function Home() {
           </p>
         </div>
 
-        <div className="grid gap-4">
+        <div className="grid gap-4 sm:grid-cols-2">
           {CONTRACT_TYPES.map((contract) => (
             <Link key={contract.id} href={`/create/${contract.id}`}>
               <Card className="cursor-pointer hover:bg-accent transition-colors">
