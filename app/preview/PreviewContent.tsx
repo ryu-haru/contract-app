@@ -35,6 +35,7 @@ export function PreviewContent() {
   const [state, setState] = useState<State>({ status: 'loading' })
   const [editedText, setEditedText] = useState('')
   const [isEditing, setIsEditing] = useState(false)
+  const [meta, setMeta] = useState<ReturnType<typeof getContractMeta> | null>(null)
 
   useEffect(() => {
     const raw = localStorage.getItem('contractFormData')
@@ -43,12 +44,23 @@ export function PreviewContent() {
       return
     }
 
-    const formData: ContractFormData = JSON.parse(raw)
+    let formData: ContractFormData
+    try {
+      formData = JSON.parse(raw)
+    } catch {
+      router.push('/')
+      return
+    }
+
+    setMeta(getContractMeta(formData.type))
+
+    const controller = new AbortController()
 
     fetch('/api/generate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(formData),
+      signal: controller.signal,
     })
       .then(async (res) => {
         if (!res.ok) throw new Error(`生成に失敗しました (${res.status})`)
@@ -69,8 +81,12 @@ export function PreviewContent() {
         setState({ status: 'done', text: accumulated })
       })
       .catch((err: Error) => {
-        setState({ status: 'error', message: err.message })
+        if (err.name !== 'AbortError') {
+          setState({ status: 'error', message: err.message })
+        }
       })
+
+    return () => controller.abort()
   }, [router])
 
   function handlePrint() {
@@ -86,20 +102,6 @@ export function PreviewContent() {
   function handleBack() {
     router.push('/')
   }
-
-  const formData: ContractFormData | null =
-    typeof window !== 'undefined'
-      ? (() => {
-          try {
-            const raw = localStorage.getItem('contractFormData')
-            return raw ? JSON.parse(raw) : null
-          } catch {
-            return null
-          }
-        })()
-      : null
-
-  const meta = formData ? getContractMeta(formData.type) : null
 
   return (
     <>
