@@ -11,6 +11,7 @@ import type { ContractFormData } from '@/types/contract'
 
 type State =
   | { status: 'loading' }
+  | { status: 'streaming' }
   | { status: 'error'; message: string }
   | { status: 'done'; text: string }
 
@@ -34,13 +35,23 @@ export function PreviewContent() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(formData),
     })
-      .then((res) => {
+      .then(async (res) => {
         if (!res.ok) throw new Error(`生成に失敗しました (${res.status})`)
-        return res.json()
-      })
-      .then(({ text }: { text: string }) => {
-        setState({ status: 'done', text })
-        setEditedText(text)
+        if (!res.body) throw new Error('レスポンスが空です')
+
+        setState({ status: 'streaming' })
+        const reader = res.body.getReader()
+        const decoder = new TextDecoder()
+        let accumulated = ''
+
+        while (true) {
+          const { done, value } = await reader.read()
+          if (done) break
+          accumulated += decoder.decode(value, { stream: true })
+          setEditedText(accumulated)
+        }
+
+        setState({ status: 'done', text: accumulated })
       })
       .catch((err: Error) => {
         setState({ status: 'error', message: err.message })
@@ -93,14 +104,17 @@ export function PreviewContent() {
             {state.status === 'done' && (
               <Badge variant="secondary">AI生成済み</Badge>
             )}
+            {state.status === 'streaming' && (
+              <Badge variant="outline" className="animate-pulse">生成中...</Badge>
+            )}
           </div>
         </div>
-        {state.status === 'done' && (
+        {(state.status === 'done' || (state.status === 'streaming' && editedText)) && (
           <div className="flex gap-2">
-            <Button variant="outline" onClick={() => setIsEditing(!isEditing)}>
+            <Button variant="outline" onClick={() => setIsEditing(!isEditing)} disabled={state.status === 'streaming'}>
               {isEditing ? '編集終了' : '編集する'}
             </Button>
-            <Button onClick={handlePrint}>印刷 / PDF保存</Button>
+            <Button onClick={handlePrint} disabled={state.status === 'streaming'}>印刷 / PDF保存</Button>
           </div>
         )}
       </div>
@@ -108,7 +122,7 @@ export function PreviewContent() {
       <Separator className="no-print mb-6" />
 
       {/* コンテンツ */}
-      {state.status === 'loading' && (
+      {(state.status === 'loading' || state.status === 'streaming') && editedText === '' && (
         <div className="flex flex-col items-center justify-center py-24 gap-4">
           <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
           <p className="text-muted-foreground text-sm">AIが契約書を生成しています...</p>
@@ -123,7 +137,7 @@ export function PreviewContent() {
         </div>
       )}
 
-      {state.status === 'done' && (
+      {(state.status === 'done' || (state.status === 'streaming' && editedText)) && (
         <>
           {isEditing ? (
             <Textarea
