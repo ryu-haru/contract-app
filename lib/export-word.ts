@@ -6,11 +6,6 @@ import {
   HeadingLevel,
   AlignmentType,
   BorderStyle,
-  Table,
-  TableRow,
-  TableCell,
-  WidthType,
-  PageOrientation,
 } from 'docx'
 import { saveAs } from 'file-saver'
 
